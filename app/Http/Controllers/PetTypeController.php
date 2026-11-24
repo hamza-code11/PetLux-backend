@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\PetType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -12,19 +13,19 @@ use Illuminate\Http\JsonResponse;
 class PetTypeController extends Controller
 {
     /**
-     * 1. List all pet types (GET /api/admin/pet-types)
+     * GET /admin/pet-types
      */
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->query('per_page', 10);
         $page = $request->query('page', 1);
         
-        // Cache versioning taaki Cache::flush() na karna pade
         $version = Cache::get('pet_types_cache_version', 1);
         $cacheKey = "pet_types_v{$version}_page_{$page}_limit_{$perPage}";
 
         $petTypes = Cache::remember($cacheKey, 86400, function () use ($perPage) {
-            return PetType::select('id', 'name', 'slug', 'image_path', 'created_at')
+            // FIX: 'show_in_navbar' ko select me add karein
+            return PetType::select('id', 'name', 'slug', 'image_path', 'show_in_navbar', 'created_at')
                 ->latest()
                 ->paginate($perPage);
         });
@@ -33,7 +34,7 @@ class PetTypeController extends Controller
     }
 
     /**
-     * 2. Store a new pet type (POST /api/admin/pet-types)
+     * POST /admin/pet-types
      */
     public function store(Request $request): JsonResponse
     {
@@ -45,6 +46,7 @@ class PetTypeController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
+            // Image ko 'pet-types' folder me save karega
             $imagePath = $request->file('image')->store('pet-types', 'public');
         }
 
@@ -63,8 +65,7 @@ class PetTypeController extends Controller
     }
 
     /**
-     * 3. Show single pet type (GET /api/admin/pet-types/{id})
-     * YEH METHOD EDIT PAGE KE LIYE ZAROORI HAI
+     * GET /admin/pet-types/{id}
      */
     public function show(PetType $petType): JsonResponse
     {
@@ -74,22 +75,22 @@ class PetTypeController extends Controller
     }
 
     /**
-     * 4. Update specific pet type (PUT /api/admin/pet-types/{id})
+     * PUT /admin/pet-types/{id}
      */
     public function update(Request $request, PetType $petType): JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('pet_types')->ignore($petType->id)],
             'slug' => ['required', 'string', 'max:255', Rule::unique('pet_types')->ignore($petType->id)],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
         ]);
 
         if ($request->hasFile('image')) {
-            // Purani image delete karein
+            // Purani image delete
             if ($petType->image_path && Storage::disk('public')->exists($petType->image_path)) {
                 Storage::disk('public')->delete($petType->image_path);
             }
-            // Nayi image save karein
+            // Nayi image save
             $validated['image_path'] = $request->file('image')->store('pet-types', 'public');
         }
 
@@ -108,7 +109,7 @@ class PetTypeController extends Controller
     }
 
     /**
-     * 5. Delete pet type (DELETE /api/admin/pet-types/{id})
+     * DELETE /admin/pet-types/{id}
      */
     public function destroy(PetType $petType): JsonResponse
     {
@@ -125,12 +126,45 @@ class PetTypeController extends Controller
     }
 
     /**
-     * Helper: Clear cached pet types
+     * Cache invalidation
      */
-    private function clearCache()
+    private function clearCache(): void
     {
-        // Cache version ko increment karein. Purana data automatically expire ho jayega.
         Cache::increment('pet_types_cache_version');
     }
+
+
+
+
+    
+
+    public function toggleNavbar(PetType $petType): JsonResponse
+    {
+        // Toggle the value
+        $petType->show_in_navbar = !$petType->show_in_navbar;
+        $petType->save();
+
+        // Cache clear karein (pet types list ke liye)
+        Cache::increment('pet_types_cache_version');
+        
+        // Menu cache clear karein (navbar ke liye)
+        Cache::increment('products_cache_version');
+
+        return response()->json([
+            'message' => 'Pet type navbar visibility updated.',
+            'show_in_navbar' => $petType->show_in_navbar,
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
 }
+
 

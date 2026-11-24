@@ -14,11 +14,10 @@ class PetType extends Model
         'name',
         'slug',
         'image_path',
+        'show_in_navbar',
     ];
 
-    /**
-     * Append full image URL to API response
-     */
+    // Auto append full image URL in API response
     protected $appends = ['image_url'];
 
     public function getImageUrlAttribute(): string
@@ -26,7 +25,6 @@ class PetType extends Model
         if (!$this->image_path) {
             return '';
         }
-        // Laravel Storage facade base URL use karega (e.g. http://127.0.0.1:8000/storage/pet-types/xyz.png)
         return Storage::disk('public')->url($this->image_path);
     }
 }
