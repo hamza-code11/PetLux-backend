@@ -128,41 +128,88 @@ class PetTypeController extends Controller
     /**
      * Cache invalidation
      */
-    private function clearCache(): void
+    // private function clearCache(): void
+    // {
+    //     Cache::increment('pet_types_cache_version');
+    // }
+    // public function toggleNavbar(PetType $petType): JsonResponse
+    // {
+    //     // Toggle the value
+    //     $petType->show_in_navbar = !$petType->show_in_navbar;
+    //     $petType->save();
+
+    //     // Cache clear karein (pet types list ke liye)
+    //     Cache::increment('pet_types_cache_version');
+        
+    //     // Menu cache clear karein (navbar ke liye)
+    //     Cache::increment('products_cache_version');
+
+    //     return response()->json([
+    //         'message' => 'Pet type navbar visibility updated.',
+    //         'show_in_navbar' => $petType->show_in_navbar,
+    //     ]);
+    // }
+
+
+
+
+
+        /**
+     * Public list for homepage (ALL pet types).
+     * GET /pet-types
+     */
+    public function publicIndex(Request $request): JsonResponse
     {
-        Cache::increment('pet_types_cache_version');
+        $version = Cache::get('pet_types_public_cache_version', 1);
+        $cacheKey = "pet_types_public_v{$version}";
+
+        $petTypes = Cache::remember($cacheKey, 86400, function () {
+            return PetType::select('id', 'name', 'slug', 'image_path')
+                ->orderBy('id')
+                ->get()
+                ->map(function ($pt) {
+                    return [
+                        'id'         => $pt->id,
+                        'name'       => $pt->name,
+                        'slug'       => $pt->slug,
+                        'image_path' => $pt->image_path,
+                        'image_url'  => $pt->image_path
+                            ? asset('storage/' . $pt->image_path)
+                            : null,
+                    ];
+                });
+        });
+
+        return response()->json(['data' => $petTypes]);
     }
-
-
-
 
     
 
+    /**
+     * Cache invalidation — invalidates admin + public caches.
+     */
+    private function clearCache(): void
+    {
+        Cache::increment('pet_types_cache_version');
+        Cache::increment('pet_types_public_cache_version');
+    }
+
+    /**
+     * PATCH /admin/pet-types/{id}/toggle-navbar
+     */
     public function toggleNavbar(PetType $petType): JsonResponse
     {
-        // Toggle the value
-        $petType->show_in_navbar = !$petType->show_in_navbar;
+        $petType->show_in_navbar = ! $petType->show_in_navbar;
         $petType->save();
 
-        // Cache clear karein (pet types list ke liye)
-        Cache::increment('pet_types_cache_version');
-        
-        // Menu cache clear karein (navbar ke liye)
-        Cache::increment('products_cache_version');
+        $this->clearCache();
+        Cache::increment('products_cache_version'); // menu cache
 
         return response()->json([
-            'message' => 'Pet type navbar visibility updated.',
+            'message'        => 'Pet type navbar visibility updated.',
             'show_in_navbar' => $petType->show_in_navbar,
         ]);
     }
-
-
-
-
-
-
-
-
 
 
 }

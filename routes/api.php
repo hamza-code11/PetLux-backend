@@ -41,7 +41,9 @@ Route::get('shop/products', [ProductController::class, 'publicIndex']);
 Route::get('shop/filters', [ProductController::class, 'getFilters']); // Naya route
 Route::get('menu', [MenuController::class, 'index']);
 Route::get('shop/products/{slug}', [ProductController::class, 'publicShow']);
+Route::get('pet-types', [PetTypeController::class, 'publicIndex']);
 Route::get('/products/{slug}/reviews', [ReviewController::class, 'index']);
+
 
 
 
