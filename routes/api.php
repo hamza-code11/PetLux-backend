@@ -12,6 +12,8 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\OrderController;
 
 
 
@@ -28,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/verify-password', [AuthController::class, 'verifyPassword']);
     Route::put('/change-password', [AuthController::class, 'updatePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/orders', [OrderController::class, 'store']);
 });
 
 
@@ -103,15 +106,32 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('contact-messages/{contactMessage}', [ContactMessageController::class, 'destroy']);
 
 
-
-
-
+    // Reviews Settings
     Route::get('/reviews', [ReviewController::class, 'adminIndex']);
     Route::patch('/reviews/{id}/approve', [ReviewController::class, 'approve']);
     Route::patch('/reviews/{id}/reject', [ReviewController::class, 'reject']);
     Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
 
 
+    // Shipping Settings
+    Route::get('/settings/shipping', [SettingController::class, 'getShippingCharges']);
+    Route::post('/settings/shipping', [SettingController::class, 'updateShippingCharges']);
+
+
+    // Payment Settings Routes
+    Route::get('/settings/payment', [SettingController::class, 'getPaymentSettings']);
+    Route::post('/settings/payment', [SettingController::class, 'updatePaymentSettings']);
+
+
+
+
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+
     
+
+
 });
 
