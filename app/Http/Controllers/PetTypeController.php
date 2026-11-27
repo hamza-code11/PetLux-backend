@@ -41,7 +41,7 @@ class PetTypeController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:pet_types,name'],
             'slug' => ['required', 'string', 'max:255', 'unique:pet_types,slug'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'], 
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'], 
         ]);
 
         $imagePath = null;
@@ -82,7 +82,7 @@ class PetTypeController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('pet_types')->ignore($petType->id)],
             'slug' => ['required', 'string', 'max:255', Rule::unique('pet_types')->ignore($petType->id)],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
         ]);
 
         if ($request->hasFile('image')) {

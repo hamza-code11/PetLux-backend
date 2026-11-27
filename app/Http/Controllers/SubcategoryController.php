@@ -40,7 +40,7 @@ class SubcategoryController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:subcategories,name'],
             'slug' => ['required', 'string', 'max:255', 'unique:subcategories,slug'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'], 
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'], 
         ]);
 
         $imagePath = null;
@@ -80,7 +80,7 @@ class SubcategoryController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('subcategories')->ignore($subcategory->id)],
             'slug' => ['required', 'string', 'max:255', Rule::unique('subcategories')->ignore($subcategory->id)],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
         ]);
 
         if ($request->hasFile('image')) {

@@ -40,7 +40,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
             'slug' => ['required', 'string', 'max:255', 'unique:categories,slug'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'], 
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'], 
         ]);
 
         $imagePath = null;
@@ -80,7 +80,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($category->id)],
             'slug' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($category->id)],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp,jfif', 'max:2048'],
         ]);
 
         if ($request->hasFile('image')) {
