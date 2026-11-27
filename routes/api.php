@@ -14,6 +14,8 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\CmsSectionController;
+use App\Http\Controllers\DashboardController;
 
 
 
@@ -31,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/change-password', [AuthController::class, 'updatePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/my-orders', [OrderController::class, 'myOrders']);
+    Route::get('/orders/track/{orderNumber}', [OrderController::class, 'trackByNumber']);
 });
 
 
@@ -46,6 +50,7 @@ Route::get('menu', [MenuController::class, 'index']);
 Route::get('shop/products/{slug}', [ProductController::class, 'publicShow']);
 Route::get('pet-types', [PetTypeController::class, 'publicIndex']);
 Route::get('/products/{slug}/reviews', [ReviewController::class, 'index']);
+Route::get('/cms/{key}', [CmsSectionController::class, 'show']);
 
 
 
@@ -132,6 +137,10 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     
 
+    Route::post('/cms/{key}', [CmsSectionController::class, 'update']); 
+
+    // Dashboard Stats
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
 });
 

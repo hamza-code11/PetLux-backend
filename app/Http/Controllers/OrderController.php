@@ -215,4 +215,100 @@ class OrderController extends Controller
     }
 
 
+
+    // Customer ke apne orders
+    public function myOrders(Request $request)
+    {
+        $orders = Order::with('items')
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
+
+        $formattedOrders = $orders->map(function ($order) {
+            return [
+                'id'                   => $order->id,
+                'order_number'         => $order->order_number,
+                'customer_name'        => $order->first_name . ' ' . $order->last_name,
+                'customer_email'       => $order->email,
+                'customer_phone'       => $order->phone,
+                'total'                => $order->total,
+                'status'               => $order->status,
+                'items_count'          => $order->items->count(),
+                'date'                 => $order->created_at->format('Y-m-d'),
+                'shipping_address'     => $order->address,
+                'shipping_city'        => $order->city,
+                'shipping_postal_code' => $order->postal_code,
+                'shipping_country'     => $order->country,
+                'subtotal'             => $order->subtotal,
+                'shipping_fee'         => $order->shipping_fee,
+                'payment_screenshot'   => $order->payment_screenshot,
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'id'           => $item->id,
+                        'name'         => $item->product_name,
+                        'variant_name' => $item->variant_name,
+                        'quantity'     => $item->quantity,
+                        'price'        => $item->price,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'data'   => $formattedOrders,
+        ]);
+    }
+
+
+
+    public function trackByNumber(Request $request, $orderNumber)
+{
+    $order = Order::with('items')
+        ->where('order_number', $orderNumber)
+        ->first();
+
+    if (!$order) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Order not found. Please check the order number.',
+        ], 404);
+    }
+
+    // Agar user logged in hai to sirf apna order dekh sake
+    if ($request->user() && $order->user_id && $order->user_id !== $request->user()->id) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Order not found.',
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => true,
+        'data'   => [
+            'id'                   => $order->id,
+            'order_number'         => $order->order_number,
+            'status'               => $order->status,
+            'date'                 => $order->created_at->format('Y-m-d'),
+            'total'                => $order->total,
+            'subtotal'             => $order->subtotal,
+            'shipping_fee'         => $order->shipping_fee,
+            'customer_name'        => $order->first_name . ' ' . $order->last_name,
+            'shipping_city'        => $order->city,
+            'shipping_country'     => $order->country,
+            'items' => $order->items->map(fn ($i) => [
+                'id'           => $i->id,
+                'name'         => $i->product_name,
+                'variant_name' => $i->variant_name,
+                'quantity'     => $i->quantity,
+                'price'        => $i->price,
+            ]),
+        ],
+    ]);
+}
+
+
+
+
+
 }
